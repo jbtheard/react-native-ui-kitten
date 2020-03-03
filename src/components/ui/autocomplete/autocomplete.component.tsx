@@ -6,6 +6,7 @@
 
 import React from 'react';
 import {
+  GestureResponderEvent,
   ListRenderItemInfo,
   StyleSheet,
   View,
@@ -143,11 +144,11 @@ export class Autocomplete<O extends Option = Option> extends React.Component<Aut
     this.inputRef.current.clear();
   };
 
-  private onInputFocus = (e: InputFocusEvent): void => {
+  private onTouchStart = (e: GestureResponderEvent): void => {
     this.setState({ optionsVisible: true });
 
-    if (this.props.onFocus) {
-      this.props.onFocus(e);
+    if (this.props.onTouchStart) {
+      this.props.onTouchStart(e);
     }
   };
 
@@ -196,7 +197,7 @@ export class Autocomplete<O extends Option = Option> extends React.Component<Aut
       <Input
         ref={this.inputRef}
         {...props}
-        onFocus={this.onInputFocus}
+        onTouchStart={this.onTouchStart}
       />
     );
   };
