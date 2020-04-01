@@ -50,17 +50,26 @@ interface TemplateTitleProps extends TemplateBaseProps {
   titleStyle?: StyleProp<TextStyle>;
 }
 
+interface TemplateTaglineProps extends TemplateBaseProps {
+  tagline: string;
+  title: string;
+  titleStyle?: StyleProp<TextStyle>;
+  taglineStyle?: StyleProp<TextStyle>;
+}
+
 interface TemplateDescriptionProps extends TemplateBaseProps {
   title?: string;
   description: string;
+  titleStyle?: StyleProp<TextStyle>;
   descriptionStyle?: StyleProp<TextStyle>;
 }
+
 
 interface CustomContentProps {
   children?: React.ReactNode;
 }
 
-type ComponentProps = (TemplateTitleProps | TemplateDescriptionProps | CustomContentProps) & ListDerivedProps;
+type ComponentProps = (TemplateTitleProps | TemplateDescriptionProps | TemplateTaglineProps | CustomContentProps) & ListDerivedProps;
 
 export type ListItemProps = StyledComponentProps & TouchableIndexedProps & ComponentProps;
 export type ListItemElement = React.ReactElement<ListItemProps>;
@@ -73,10 +82,14 @@ export type ListItemElement = React.ReactElement<ListItemProps>;
  * @extends React.Component
  *
  * @property {string} title - Determines the title of the ListItem.
+ * 
+ * @property {string} tagline - Determines the tagline of the ListItem.
  *
  * @property {string} description - Determines the description of the ListItem's title.
  *
  * @property {StyleProp<TextStyle>} titleStyle - Customizes title style.
+ * 
+ * @property {StyleProp<TextStyle>} taglineStyle - Customizes tagline style.
  *
  * @property {StyleProp<TextStyle>} descriptionStyle - Customizes description style.
  *
@@ -95,6 +108,8 @@ export type ListItemElement = React.ReactElement<ListItemProps>;
  *
  * @overview-example ListItemSimpleUsage
  *
+ * @overview-example ListItemWithTagline
+ * 
  * @overview-example ListItemWithIcon
  *
  * @overview-example ListItemWithAccessory
@@ -153,6 +168,13 @@ export class ListItemComponent extends React.Component<ListItemProps> {
       descriptionLineHeight,
       descriptionColor,
       descriptionMarginHorizontal,
+      taglineFontFamily,
+      taglineFontSize,
+      taglineFontWeight,
+      taglineLineHeight,
+      taglineColor,
+      taglineMarginHorizontal,
+      taglineTextTransform,
       accessoryMarginHorizontal,
       ...containerParameters
     } = source;
@@ -173,6 +195,15 @@ export class ListItemComponent extends React.Component<ListItemProps> {
         lineHeight: titleLineHeight,
         fontWeight: titleFontWeight,
         color: titleColor,
+      },
+      tagline: {
+        color: taglineColor,
+        fontFamily: taglineFontFamily,
+        fontSize: taglineFontSize,
+        fontWeight: taglineFontWeight,
+        lineHeight: taglineLineHeight,
+        marginHorizontal: taglineMarginHorizontal,
+        textTransform: taglineTextTransform,
       },
       description: {
         color: descriptionColor,
@@ -202,15 +233,29 @@ export class ListItemComponent extends React.Component<ListItemProps> {
 
   private renderContentElement = (style: StyleType): React.ReactElement<ViewProps> => {
     const { contentContainer, ...contentStyles } = style;
-    const [titleElement, descriptionElement] = this.renderContentElementChildren(contentStyles);
+    const [taglineElement, titleElement, descriptionElement] = this.renderContentElementChildren(contentStyles);
 
     return (
       <View
         key={1}
         style={[contentContainer, styles.contentContainer]}>
+        {taglineElement}
         {titleElement}
         {descriptionElement}
       </View>
+    );
+  };
+
+  private renderTaglineElement = (style: StyleType): TextElement => {
+    // @ts-ignore: will be not executed if `tagline` property is provided
+    const { tagline, taglineStyle } = this.props;
+
+    return (
+      <Text
+        key={2}
+        style={[style, styles.tagline, taglineStyle]}>
+        {tagline}
+      </Text>
     );
   };
 
@@ -220,7 +265,7 @@ export class ListItemComponent extends React.Component<ListItemProps> {
 
     return (
       <Text
-        key={2}
+        key={3}
         style={[style, styles.title, titleStyle]}>
         {title}
       </Text>
@@ -233,7 +278,7 @@ export class ListItemComponent extends React.Component<ListItemProps> {
 
     return (
       <Text
-        key={3}
+        key={4}
         style={[style, styles.description, descriptionStyle]}>
         {description}
       </Text>
@@ -247,28 +292,29 @@ export class ListItemComponent extends React.Component<ListItemProps> {
     const accessoryElement: React.ReactElement = accessory(style, index);
 
     return React.cloneElement(accessoryElement, {
-      key: 4,
+      key: 5,
       style: [style, styles.accessory, accessoryElement.props.style],
     });
   };
 
   private renderContentElementChildren = (style: StyleType): React.ReactNodeArray => {
     // @ts-ignore: will be not executed if any of properties below is provided
-    const { title, description } = this.props;
+    const { title, tagline, description } = this.props;
 
     return [
       isValidString(title) && this.renderTitleElement(style.title),
+      isValidString(tagline) && this.renderTaglineElement(style.tagline),
       isValidString(description) && this.renderDescriptionElement(style.description),
     ];
   };
 
   private renderTemplateChildren = (style: StyleType): React.ReactNodeArray => {
     // @ts-ignore: following props could not be provided
-    const { icon, title, description, accessory } = this.props;
+    const { icon, tagline, title, description, accessory } = this.props;
 
     return [
       icon && this.renderIconElement(style.icon),
-      (title || description) && this.renderContentElement(style),
+      (tagline || title || description) && this.renderContentElement(style),
       accessory && this.renderAccessoryElement(style.accessory),
     ];
   };
@@ -309,6 +355,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   icon: {},
+  tagline: {
+    textAlign: 'left',
+  },
   title: {
     textAlign: 'left',
   },
@@ -326,3 +375,4 @@ const webStyles = Platform.OS === 'web' && StyleSheet.create({
 });
 
 export const ListItem = styled<ListItemProps>(ListItemComponent);
+
